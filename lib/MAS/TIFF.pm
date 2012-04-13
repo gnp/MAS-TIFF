@@ -7,10 +7,5 @@ use strict;
 use warnings;
 use FileHandle;
 
-package MAS::TIFF::File;
-
-sub io { return shift->{IO} }
-sub ifds { return shift->{IFDS} }
-
 1;
 
