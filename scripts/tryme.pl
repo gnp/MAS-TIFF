@@ -10,6 +10,7 @@ use MAS::TIFF;
 use MAS::TIFF::IO;
 use MAS::TIFF::Rational;
 use MAS::TIFF::DataType;
+use MAS::TIFF::Tag;
 
 # http://www.fileformat.info/format/tiff/egff.htm
 my %compression = (
