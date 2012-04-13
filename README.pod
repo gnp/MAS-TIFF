@@ -1,0 +1,15 @@
+=head1 MAS::TIFF
+
+MAS stands for Metadata And Samples.
+
+MAS::TIFF is a pure Perl package for reading TIFF image metadata and samples.
+
+The other TIFF reading libraries I could find on CPAN either used C<libtiff>
+or were just about metadata. I needed a library that would allow me to read
+
+=head1 STATUS
+
+As of 2012-04-12, some basic metadata reading is working, but the API isn't
+really any good yet. The F<scripts/tryme.pl> script has too much code in it
+still. Also no access yet to pixel data.
+
