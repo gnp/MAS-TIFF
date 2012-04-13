@@ -6,7 +6,8 @@
 use strict;
 use warnings;
 
-use MAS::TIFF;
+use FileHandle;
+
 use MAS::TIFF::IO;
 use MAS::TIFF::Rational;
 use MAS::TIFF::DataType;
