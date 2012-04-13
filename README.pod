@@ -1,4 +1,8 @@
-=head1 MAS::TIFF
+=head1 NAME
+
+MAS::TIFF - Pure Perl TIFF image metadata and samples reading
+
+=head1 DESCRIPTION
 
 MAS stands for Metadata And Samples.
 
