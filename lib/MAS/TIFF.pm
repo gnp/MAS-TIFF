@@ -7,11 +7,6 @@ use strict;
 use warnings;
 use FileHandle;
 
-package MAS::TIFF::DataType;
-
-sub id { return shift->{ID} }
-sub name { return shift->{NAME} }
-
 package MAS::TIFF::Tag;
 
 sub id { return shift->{ID} }
