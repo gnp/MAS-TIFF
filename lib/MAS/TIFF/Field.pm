@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-package MAS::TIFF::Tag;
+package MAS::TIFF::Field;
 
 sub id { return shift->{ID} }
 sub name { return shift->{NAME} }

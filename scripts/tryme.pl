@@ -11,7 +11,7 @@ use FileHandle;
 use MAS::TIFF::IO;
 use MAS::TIFF::Rational;
 use MAS::TIFF::DataType;
-use MAS::TIFF::Tag;
+use MAS::TIFF::Field;
 use MAS::TIFF::IFD;
 
 # http://www.fileformat.info/format/tiff/egff.htm
@@ -180,7 +180,7 @@ sub read_tag {
     TYPE   => $data_type,
     COUNT  => $data_count,
     OFFSET => $data_offset,
-  }, 'MAS::TIFF::Tag';
+  }, 'MAS::TIFF::Field';
 }
 
 sub read_ifd {
