@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 package MAS::TIFF::IO;
 
 sub fh { return shift->{FH} }
