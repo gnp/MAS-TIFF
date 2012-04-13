@@ -47,8 +47,41 @@ sub tag {
 sub image_width { return shift->tag(TAG_IMAGE_WIDTH)->offset }
 sub image_length { return shift->tag(TAG_IMAGE_LENGTH)->offset }
 
-sub bits_per_sample { return shift->tag(TAG_BITS_PER_SAMPLE)->offset }
-sub samples_per_pixel { return shift->tag(TAG_SAMPLES_PER_PIXEL)->offset }
+sub bits_per_sample {
+  my $self = shift;
+  
+  my $spp = $self->samples_per_pixel;
+  
+  my $tag = $self->tag(TAG_BITS_PER_SAMPLE);
+  
+  if (not defined $tag) {
+    if ($spp == 1) {
+      return 1; # OK to default to 1 if only expecting a single value
+    }
+    else {
+      die "Cannot omit bits_per_sample tag when samples_per_pixel > 1!";
+    }
+  }
+  
+  if ($spp == 1) {
+    return $tag->offset;
+  }
+  else {
+    die "Not supported yet -- Need better tag reading code";
+  }
+  
+  return shift->tag(TAG_BITS_PER_SAMPLE)->offset
+}
+
+sub samples_per_pixel {
+  my $self = shift;
+  
+  my $tag = $self->tag(TAG_SAMPLES_PER_PIXEL);
+  
+  return 1 unless defined $tag;
+  
+  return $tag->offset
+}
 
 sub is_image {
   my $self = shift;
