@@ -8,7 +8,10 @@ use constant {
   TAG_SUBFILE_TYPE     => 255,
   TAG_IMAGE_WIDTH      => 256,
   TAG_IMAGE_LENGTH     => 257,
-
+  
+  TAG_BITS_PER_SAMPLE   => 258,
+  TAG_SAMPLES_PER_PIXEL => 277,
+  
   TAG_X_RESOLUTION     => 282,
   TAG_Y_RESOLUTION     => 283,
   TAG_RESOLUTION_UNIT  => 296,
@@ -43,6 +46,9 @@ sub tag {
 
 sub image_width { return shift->tag(TAG_IMAGE_WIDTH)->offset }
 sub image_length { return shift->tag(TAG_IMAGE_LENGTH)->offset }
+
+sub bits_per_sample { return shift->tag(TAG_BITS_PER_SAMPLE)->offset }
+sub samples_per_pixel { return shift->tag(TAG_SAMPLES_PER_PIXEL)->offset }
 
 sub is_image {
   my $self = shift;
