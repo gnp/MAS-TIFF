@@ -8,6 +8,7 @@ use warnings;
 
 use MAS::TIFF;
 use MAS::TIFF::IO;
+use MAS::TIFF::Rational;
 
 # http://www.fileformat.info/format/tiff/egff.htm
 my %compression = (
