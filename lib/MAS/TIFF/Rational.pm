@@ -3,6 +3,13 @@ use warnings;
 
 package MAS::TIFF::Rational;
 
+sub new {
+  my $class = shift;
+  my ($numerator, $denominator) = @_;
+  
+  return bless [$numerator, $denominator], $class;
+}
+
 sub numerator { return shift->[0] }
 sub denominator { return shift->[1] }
 

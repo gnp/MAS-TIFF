@@ -1,3 +1,7 @@
+#
+# http://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf
+#
+
 use strict;
 use warnings;
 
@@ -14,8 +18,6 @@ sub new {
   my @ifds = ( );
   while ($absolute_ifd_offset != 0) {
     my $ifd = MAS::TIFF::IFD->new($io, $absolute_ifd_offset);
-
-    print "REF: " . ref($ifd) . "\n";
     
     push @ifds, $ifd;
 
@@ -58,8 +60,14 @@ sub dump {
     printf("  IFD: At offset %d\n", $ifd->offset);
     
     foreach my $field ($ifd->fields) {
-      printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, V/O 0x%04x\n", $field->id, $field->name,
-        $field->type->name, $field->count, $field->offset);
+      if ($field->size > 4) {
+        printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, OFFSET %d\n", $field->id, $field->name,
+          $field->type->name, $field->count, $field->size, $field->template, $field->offset);
+      }
+      else {
+        printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, RAW 0x%s, VALUE %s\n", $field->id, $field->name,
+          $field->type->name, $field->count, $field->size, $field->template, unpack('H*', $field->raw), join(', ', $field->values));
+      }
     }
     
     printf("    Size: %d x %d\n", $ifd->image_width, $ifd->image_length);

@@ -12,31 +12,43 @@ sub new {
   die 'Could not open' unless defined $fh;
 
   binmode($fh);
+  
+  my $self = bless {
+    FH => $fh,
+  }, $class;
 
-  my $buf;
-  my $n = $fh->read($buf, 4);
-
-  die "Error reading file: $!" unless defined $n;
-  die "Could not read 4 bytes from file!" unless $n == 4;
+  my $buf = $self->read(4);
 
   my $byte_order;
 
   if ($buf eq "MM\0\x2a") {
-    $byte_order = 'M';
+    $byte_order = 'M'; # big-endian
   }
   elsif ($buf eq "II\x2a\0") {
-    $byte_order = 'I';
+    $byte_order = 'I'; # little-endian
   }
   else {
     die "Not a TIFF file. Header: '%s', version %x %x\n", substr($buf, 0, 2), ord substr($buf, 2, 1), ord substr($buf, 3, 1);
   }
 
-  my $self = bless {
-    FH => $fh,
-    BYTE_ORDER => $byte_order,
-  }, $class;
+  $self->{BYTE_ORDER} = $byte_order;
   
   return $self;
+}
+
+sub read {
+  my $self = shift;
+  my $size = shift;
+  my $seek = shift;
+ 
+  $self->fh->seek($seek, 0) if defined $seek;
+
+  my $buf;
+  my $n = $self->fh->read($buf, $size);
+  die "Error reading: $!" unless defined $n;
+  die "Unable to read $size bytes!" unless $n == $size;
+ 
+  return $buf;
 }
 
 sub close {

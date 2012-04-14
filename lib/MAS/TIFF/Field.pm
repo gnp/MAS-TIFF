@@ -91,56 +91,24 @@ my %tags = (
   34665 => 'Exif IFD', # http://www.digitalpreservation.gov/formats/content/tiff_tags.shtml
 );
 
-# http://www.fileformat.info/format/tiff/egff.htm
-my %types = (
-   1 => 'BYTE',
-   2 => 'ASCII',
-   3 => 'SHORT',
-   4 => 'LONG',
-   5 => 'RATIONAL',
-
-   # TIFF 6.0
-   6 => 'SBYTE',
-   7 => 'UNDEFINE',
-   8 => 'SSHORT',
-   9 => 'SLONG',
-  10 => 'SRATIONAL',
-  11 => 'FLOAT',
-  12 => 'DOUBLE',
-);
-
-sub read_data_type {
-  my $io = shift;
-
-  my $data_type = $io->read_word;
-
-  my $t = $types{$data_type};
-
-  die "Unrecognized data type: $data_type" unless defined $t;
-
-  return bless { 
-    ID   => $data_type,
-    NAME => $t,
-  }, 'MAS::TIFF::DataType';
-}
-
-sub new {
+sub read_from_io {
   my $class = shift;
   my $io = shift;
   
   my $tag_id = $io->read_word;
   my $tag_name = $tags{$tag_id};
 
-  my $data_type = read_data_type($io);
+  my $data_type = MAS::TIFF::DataType->read_from_io($io);
   my $data_count = $io->read_dword;
-  my $data_offset = $io->read_dword;
+  my $data_raw = $io->read(4);
   
   my $self = bless {
+    IO     => $io,
     ID     => $tag_id,
     NAME   => $tag_name,
     TYPE   => $data_type,
     COUNT  => $data_count,
-    OFFSET => $data_offset,
+    RAW    => $data_raw,
   }, $class;
   
   return $self;
@@ -150,6 +118,76 @@ sub id { return shift->{ID} }
 sub name { return shift->{NAME} }
 sub type { return shift->{TYPE} }
 sub count { return shift->{COUNT} }
-sub offset { return shift->{OFFSET} }
+sub raw { return shift->{RAW} }
+
+sub size {
+  my $self = shift;
+  
+  if (exists $self->{SIZE}) {
+    return $self->{SIZE};
+  }
+  
+  my $size = $self->type->size * $self->count;
+  
+  $self->{SIZE} = $size;
+  
+  return $size;
+}
+
+sub offset {
+  my $self = shift;
+  
+  if (exists $self->{OFFSET}) {
+    return $self->{OFFSET};
+  }
+    
+  my $offset;
+  
+  if ($self->size <= 4) {
+    $offset = undef;
+  }
+  else {
+    if ($self->{IO}->byte_order eq 'I') {
+      $offset = unpack('S<', $self->raw);
+    }
+    else {
+      $offset = unpack('S>', $self->raw);
+    }
+  }
+  
+  $self->{OFFSET} = $offset;
+  
+  return $offset;
+}
+
+sub template {
+  my $self = shift;
+  return $self->type->template($self->count, $self->{IO}->byte_order);
+}
+
+sub values {
+  my $self = shift;
+  
+  if (exists $self->{VALUES}) {
+    return @{$self->{VALUES}};
+  }
+  
+  my $size = $self->type->size * $self->count;
+  
+  my $bytes;
+  
+  if ($size <= 4) {
+    $bytes = $self->{RAW};
+  }
+  else {
+    $bytes = $self->{IO}->read($size, $self->offset);
+  }
+
+  my @values = $self->type->post_process(unpack($self->template, $bytes));
+  
+  $self->{VALUES} = [ @values ];
+  
+  return @values;
+}
 
 1;
