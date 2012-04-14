@@ -3,6 +3,50 @@ use warnings;
 
 package MAS::TIFF::IO;
 
+sub new {
+  my $class = shift;
+  my $path = shift;
+  
+  my $fh = FileHandle->new($path, 'r');
+
+  die 'Could not open' unless defined $fh;
+
+  binmode($fh);
+
+  my $buf;
+  my $n = $fh->read($buf, 4);
+
+  die "Error reading file: $!" unless defined $n;
+  die "Could not read 4 bytes from file!" unless $n == 4;
+
+  my $byte_order;
+
+  if ($buf eq "MM\0\x2a") {
+    $byte_order = 'M';
+  }
+  elsif ($buf eq "II\x2a\0") {
+    $byte_order = 'I';
+  }
+  else {
+    die "Not a TIFF file. Header: '%s', version %x %x\n", substr($buf, 0, 2), ord substr($buf, 2, 1), ord substr($buf, 3, 1);
+  }
+
+  my $self = bless {
+    FH => $fh,
+    BYTE_ORDER => $byte_order,
+  }, $class;
+  
+  return $self;
+}
+
+sub close {
+  my $self = shift;
+  
+  my $fh = $self->fh;
+  $fh->close;
+  delete $self->{FH};
+}
+
 sub fh { return shift->{FH} }
 sub byte_order { return shift->{BYTE_ORDER} }
 

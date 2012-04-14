@@ -3,6 +3,8 @@ use warnings;
 
 package MAS::TIFF::IFD;
 
+use MAS::TIFF::Field;
+
 use constant {
   TAG_NEW_SUBFILE_TYPE => 254,
   TAG_SUBFILE_TYPE     => 255,
@@ -32,29 +34,67 @@ use constant {
   OLD_FILE_TYPE_PAGE          => 3,
 };
 
+sub new {
+  my $class = shift;
+  my ($io, $offset) = @_;
+
+  print "CLASS: $class\n";
+  
+  my $num_dir_entries = $io->read_word($offset);
+
+  my @field_ids = ( );
+  my %fields = ( );
+
+  for (my $i = 0; $i < $num_dir_entries; ++$i) {
+    my $field = MAS::TIFF::Field->new($io);
+    push @field_ids, $field->id;
+    $fields{$field->id} = $field;
+  }
+
+  my $next_offset = $io->read_dword;
+
+  my $self = bless {
+    IO => $io,
+    OFFSET => $offset,
+    FIELD_IDS => [ @field_ids ],
+    FIELDS => { %fields },
+    NEXT_IFD_OFFSET => $next_offset,
+  }, $class;
+
+  print "BLESSED " . ref($self) . "\n";
+  
+  return $self;
+}
+
 sub io { return shift->{IO} }
 sub offset { return shift->{OFFSET} }
-sub tags { return shift->{TAGS} }
+
+sub fields {
+  my $self = shift;
+  
+  return map { $self->{FIELDS}{$_} } @{$self->{FIELD_IDS}};
+}
+
 sub next_ifd_offset { return shift->{NEXT_IFD_OFFSET} }
 
-sub tag {
+sub field {
   my $self = shift;
   my $tag_id = shift;
 
-  return $self->{TAGS}{$tag_id};
+  return $self->{FIELDS}{$tag_id};
 }
 
-sub image_width { return shift->tag(TAG_IMAGE_WIDTH)->offset }
-sub image_length { return shift->tag(TAG_IMAGE_LENGTH)->offset }
+sub image_width { return shift->field(TAG_IMAGE_WIDTH)->offset }
+sub image_length { return shift->field(TAG_IMAGE_LENGTH)->offset }
 
 sub bits_per_sample {
   my $self = shift;
   
   my $spp = $self->samples_per_pixel;
   
-  my $tag = $self->tag(TAG_BITS_PER_SAMPLE);
+  my $field = $self->field(TAG_BITS_PER_SAMPLE);
   
-  if (not defined $tag) {
+  if (not defined $field) {
     if ($spp == 1) {
       return 1; # OK to default to 1 if only expecting a single value
     }
@@ -64,40 +104,40 @@ sub bits_per_sample {
   }
   
   if ($spp == 1) {
-    return $tag->offset;
+    return $field->offset;
   }
   else {
     die "Not supported yet -- Need better tag reading code";
   }
   
-  return shift->tag(TAG_BITS_PER_SAMPLE)->offset
+  return shift->field(TAG_BITS_PER_SAMPLE)->offset
 }
 
 sub samples_per_pixel {
   my $self = shift;
   
-  my $tag = $self->tag(TAG_SAMPLES_PER_PIXEL);
+  my $field = $self->field(TAG_SAMPLES_PER_PIXEL);
   
-  return 1 unless defined $tag;
+  return 1 unless defined $field;
   
-  return $tag->offset
+  return $field->offset
 }
 
 sub is_image {
   my $self = shift;
 
-  my $tag = $self->tag(TAG_NEW_SUBFILE_TYPE);
+  my $field = $self->field(TAG_NEW_SUBFILE_TYPE);
 
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
-  if (defined $tag) {
+  if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($tag->offset & (FILE_TYPE_REDUCED_IMAGE | FILE_TYPE_PAGE | FILE_TYPE_MASK)) == 0;
+    return ($field->offset & (FILE_TYPE_REDUCED_IMAGE | FILE_TYPE_PAGE | FILE_TYPE_MASK)) == 0;
   }
   else {
-    $tag = $self->tag(TAG_SUBFILE_TYPE);
+    $field = $self->field(TAG_SUBFILE_TYPE);
 
-    if (defined $tag) {
-      return $tag->offset == OLD_FILE_TYPE_IMAGE;
+    if (defined $field) {
+      return $field->offset == OLD_FILE_TYPE_IMAGE;
     }
     else {
       return 1;
@@ -108,18 +148,18 @@ sub is_image {
 sub is_reduced_image {
   my $self = shift;
 
-  my $tag = $self->tag(TAG_NEW_SUBFILE_TYPE);
+  my $field = $self->field(TAG_NEW_SUBFILE_TYPE);
 
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
-  if (defined $tag) {
+  if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($tag->offset & FILE_TYPE_REDUCED_IMAGE) != 0;
+    return ($field->offset & FILE_TYPE_REDUCED_IMAGE) != 0;
   }
   else {
-    $tag = $self->tag(TAG_SUBFILE_TYPE);
+    $field = $self->field(TAG_SUBFILE_TYPE);
 
-    if (defined $tag) {
-      return $tag->offset == OLD_FILE_TYPE_REDUCED_IMAGE;
+    if (defined $field) {
+      return $field->offset == OLD_FILE_TYPE_REDUCED_IMAGE;
     }
     else {
       return 0;
@@ -130,18 +170,18 @@ sub is_reduced_image {
 sub is_page {
   my $self = shift;
 
-  my $tag = $self->tag(TAG_NEW_SUBFILE_TYPE);
+  my $field = $self->field(TAG_NEW_SUBFILE_TYPE);
 
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
-  if (defined $tag) {
+  if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($tag->offset & FILE_TYPE_PAGE) != 0;
+    return ($field->offset & FILE_TYPE_PAGE) != 0;
   }
   else {
-    $tag = $self->tag(TAG_SUBFILE_TYPE);
+    $field = $self->field(TAG_SUBFILE_TYPE);
 
-    if (defined $tag) {
-      return $tag->offset == OLD_FILE_TYPE_PAGE;
+    if (defined $field) {
+      return $field->offset == OLD_FILE_TYPE_PAGE;
     }
     else {
       return 0;
@@ -152,12 +192,12 @@ sub is_page {
 sub is_mask {
   my $self = shift;
 
-  my $tag = $self->tag(TAG_NEW_SUBFILE_TYPE);
+  my $field = $self->field(TAG_NEW_SUBFILE_TYPE);
 
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
-  if (defined $tag) {
+  if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($tag->offset & FILE_TYPE_MASK) != 0;
+    return ($field->offset & FILE_TYPE_MASK) != 0;
   }
   else {
     return 0;
@@ -170,16 +210,22 @@ my %resolution_units = (
   3 => 'CM',
 );
 
+my $default_resolution_units = 2;
+
 sub resolution_unit {
   my $self = shift;
 
-  my $tag = $self->tag(TAG_RESOLUTION_UNIT);
+  my $field = $self->field(TAG_RESOLUTION_UNIT);
 
-  return $resolution_units{2} unless defined $tag;
+  unless (defined $field) {
+    my $temp = $resolution_units{$default_resolution_units};
+    
+    return $temp;
+  }
 
-  my $unit = $resolution_units{$tag->offset};
+  my $unit = $resolution_units{$field->offset};
 
-  die("Unrecognized resolution unit '" . $tag->offset . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %resolution_units)) unless defined $unit;
+  die("Unrecognized resolution unit '" . $field->offset . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %resolution_units)) unless defined $unit;
 
   return $unit;
 }
@@ -191,10 +237,10 @@ sub datetime {
 
   my $datetime = undef;
 
-  my $tag = $self->tag(TAG_DATETIME);
+  my $field = $self->field(TAG_DATETIME);
 
-  if (defined $tag) {
-    $datetime = $self->io->read_ascii($tag->count, $tag->offset);
+  if (defined $field) {
+    $datetime = $self->io->read_ascii($field->count, $field->offset);
   }
 
   $self->{DATETIME} = $datetime;
@@ -209,10 +255,10 @@ sub software {
 
   my $software = undef;
 
-  my $tag = $self->tag(TAG_SOFTWARE);
+  my $field = $self->field(TAG_SOFTWARE);
 
-  if (defined $tag) {
-    $software = $self->io->read_ascii($tag->count, $tag->offset);
+  if (defined $field) {
+    $software = $self->io->read_ascii($field->count, $field->offset);
   }
 
   $self->{SOFTWARE} = $software;
@@ -225,11 +271,11 @@ sub x_resolution {
 
   return $self->{X_RESOLUTION} if exists $self->{X_RESOLUTION};
 
-  my $tag = $self->tag(TAG_X_RESOLUTION);
+  my $field = $self->field(TAG_X_RESOLUTION);
 
-  return undef unless defined $tag;
+  return undef unless defined $field;
 
-  my $rat = $self->io->read_rational($tag->offset);
+  my $rat = $self->io->read_rational($field->offset);
 
   $self->{X_RESOLUTION} = $rat;
 
@@ -241,11 +287,11 @@ sub y_resolution {
 
   return $self->{Y_RESOLUTION} if exists $self->{Y_RESOLUTION};
 
-  my $tag = $self->tag(TAG_Y_RESOLUTION);
+  my $field = $self->field(TAG_Y_RESOLUTION);
 
-  return undef unless defined $tag;
+  return undef unless defined $field;
 
-  my $rat = $self->io->read_rational($tag->offset);
+  my $rat = $self->io->read_rational($field->offset);
 
   $self->{Y_RESOLUTION} = $rat;
 
