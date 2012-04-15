@@ -12,6 +12,7 @@ use constant {
   TAG_IMAGE_LENGTH     => 257,
   
   TAG_BITS_PER_SAMPLE   => 258,
+  TAG_COMPRESSION       => 259,
   TAG_SAMPLES_PER_PIXEL => 277,
   
   TAG_X_RESOLUTION     => 282,
@@ -222,6 +223,39 @@ sub resolution_unit {
   die("Unrecognized resolution unit '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %resolution_units)) unless defined $unit;
 
   return $unit;
+}
+
+# http://www.fileformat.info/format/tiff/egff.htm
+my %compression = (
+      1 => 'Uncompressed', # baseline
+      2 => 'CCITT 1D', # baseline
+      3 => 'CCITT Group 3',
+      4 => 'CCITT Group 4',
+      5 => 'LZW',
+      6 => 'JPEG (Old)',
+      7 => 'JPEG (Technote2)',
+  32771 => 'CCITT RLEW', # http://www.awaresystems.be/imaging/tiff/tifftags/compression.html
+  32773 => 'Packbits', # baseline
+);
+
+my $default_compression = 1;
+
+sub compression {
+  my $self = shift;
+
+  my $field = $self->field(TAG_COMPRESSION);
+
+  unless (defined $field) {
+    my $temp = $compression{$default_compression};
+    
+    return $temp;
+  }
+
+  my $value = $compression{$field->value_at(0)};
+
+  die("Unrecognized compression '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %compression)) unless defined $value;
+
+  return $value;
 }
 
 sub datetime {
