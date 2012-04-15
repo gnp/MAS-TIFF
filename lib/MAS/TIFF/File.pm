@@ -65,8 +65,8 @@ sub dump {
           $field->type->name, $field->count, $field->size, $field->template, $field->offset);
       }
       else {
-        printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, RAW 0x%s, VALUE %s\n", $field->id, $field->name,
-          $field->type->name, $field->count, $field->size, $field->template, unpack('H*', $field->raw), join(', ', $field->values));
+        printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, RAW 0x%s, VALUES (%s)\n", $field->id, $field->name,
+          $field->type->name, $field->count, $field->size, $field->template, unpack('H*', $field->raw), join(', ', @{$field->all_values}));
       }
     }
     

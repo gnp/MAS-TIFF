@@ -26,13 +26,16 @@ my $make_type = sub {
 &$make_type(3, 'SHORT',      2, 'S<%d', 'S>%d');
 &$make_type(4, 'LONG',       4, 'L<%d', 'L>%d');
 &$make_type(5, 'RATIONAL',   8, '(L<2)%d', '(L>2)%d', sub {
+  my $in = shift;
+  my @longs = @{$in};
+  
   my @out = ( );
-  while (@_ >= 2) {
-    my $n = shift;
-    my $d = shift;
+  while (@longs >= 2) {
+    my $n = shift @longs;
+    my $d = shift @longs;
     push @out, MAS::TIFF::Rational->new($n, $d);
   }
-  return @out;
+  return [ @out ];
 } );
 
 # TIFF 6.0
@@ -70,10 +73,11 @@ sub size { return shift->{SIZE} }
 
 sub post_process { 
   my $self = shift;
+  my $values = shift;
   
-  return @_ unless defined $self->{POST};
+  return $values unless defined $self->{POST};
   
-  return &{$self->{POST}}(@_);
+  return &{$self->{POST}}($values);
 }
 
 sub template {

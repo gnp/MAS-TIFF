@@ -80,8 +80,8 @@ sub field {
   return $self->{FIELDS}{$tag_id};
 }
 
-sub image_width { return shift->field(TAG_IMAGE_WIDTH)->values }
-sub image_length { return shift->field(TAG_IMAGE_LENGTH)->values }
+sub image_width { return shift->field(TAG_IMAGE_WIDTH)->value_at(0) }
+sub image_length { return shift->field(TAG_IMAGE_LENGTH)->value_at(0) }
 
 sub bits_per_sample {
   my $self = shift;
@@ -100,13 +100,11 @@ sub bits_per_sample {
   }
   
   if ($spp == 1) {
-    return $field->values;
+    return $field->value_at(0);
   }
   else {
     die "Not supported yet -- Need better tag reading code";
   }
-  
-  return shift->field(TAG_BITS_PER_SAMPLE)->values;
 }
 
 sub samples_per_pixel {
@@ -116,7 +114,7 @@ sub samples_per_pixel {
   
   return 1 unless defined $field;
   
-  return $field->values
+  return $field->value_at(0);
 }
 
 sub is_image {
@@ -127,13 +125,13 @@ sub is_image {
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
   if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($field->values & (FILE_TYPE_REDUCED_IMAGE | FILE_TYPE_PAGE | FILE_TYPE_MASK)) == 0;
+    return ($field->value_at(0) & (FILE_TYPE_REDUCED_IMAGE | FILE_TYPE_PAGE | FILE_TYPE_MASK)) == 0;
   }
   else {
     $field = $self->field(TAG_SUBFILE_TYPE);
 
     if (defined $field) {
-      return $field->values == OLD_FILE_TYPE_IMAGE;
+      return $field->value_at(0) == OLD_FILE_TYPE_IMAGE;
     }
     else {
       return 1;
@@ -149,13 +147,13 @@ sub is_reduced_image {
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
   if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($field->values & FILE_TYPE_REDUCED_IMAGE) != 0;
+    return ($field->value_at(0) & FILE_TYPE_REDUCED_IMAGE) != 0;
   }
   else {
     $field = $self->field(TAG_SUBFILE_TYPE);
 
     if (defined $field) {
-      return $field->values == OLD_FILE_TYPE_REDUCED_IMAGE;
+      return $field->value_at(0) == OLD_FILE_TYPE_REDUCED_IMAGE;
     }
     else {
       return 0;
@@ -171,13 +169,13 @@ sub is_page {
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
   if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($field->values & FILE_TYPE_PAGE) != 0;
+    return ($field->value_at(0) & FILE_TYPE_PAGE) != 0;
   }
   else {
     $field = $self->field(TAG_SUBFILE_TYPE);
 
     if (defined $field) {
-      return $field->values == OLD_FILE_TYPE_PAGE;
+      return $field->value_at(0) == OLD_FILE_TYPE_PAGE;
     }
     else {
       return 0;
@@ -193,7 +191,7 @@ sub is_mask {
   # First try TAG_NEW_SUBFILE_TYPE, else TAG_SUBFILE_TYPE
   if (defined $field) {
     # If none of bits 0, 1 or 2 is set, this is a regular image
-    return ($field->values & FILE_TYPE_MASK) != 0;
+    return ($field->value_at(0) & FILE_TYPE_MASK) != 0;
   }
   else {
     return 0;
@@ -219,9 +217,9 @@ sub resolution_unit {
     return $temp;
   }
 
-  my $unit = $resolution_units{$field->values};
+  my $unit = $resolution_units{$field->value_at(0)};
 
-  die("Unrecognized resolution unit '" . $field->values . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %resolution_units)) unless defined $unit;
+  die("Unrecognized resolution unit '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %resolution_units)) unless defined $unit;
 
   return $unit;
 }
@@ -236,7 +234,7 @@ sub datetime {
   my $field = $self->field(TAG_DATETIME);
 
   if (defined $field) {
-    $datetime = $field->values;
+    $datetime = $field->value_at(0);
   }
 
   $self->{DATETIME} = $datetime;
@@ -254,7 +252,7 @@ sub software {
   my $field = $self->field(TAG_SOFTWARE);
 
   if (defined $field) {
-    $software = $field->values;
+    $software = $field->value_at(0);
   }
 
   $self->{SOFTWARE} = $software;
@@ -271,7 +269,7 @@ sub x_resolution {
 
   return undef unless defined $field;
 
-  my ($rat) = $field->values;
+  my $rat = $field->value_at(0);
 
   $self->{X_RESOLUTION} = $rat;
 
@@ -287,7 +285,7 @@ sub y_resolution {
 
   return undef unless defined $field;
 
-  my ($rat) = $field->values;
+  my $rat = $field->value_at(0);
 
   $self->{Y_RESOLUTION} = $rat;
 

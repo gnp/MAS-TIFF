@@ -165,29 +165,45 @@ sub template {
   return $self->type->template($self->count, $self->{IO}->byte_order);
 }
 
-sub values {
+sub value_at {
+  my $self = shift;
+  my $index = shift;
+  
+  die "Index must be defined" unless defined $index;
+  
+  my $values = $self->all_values;
+  
+  return $values->[$index];
+}
+
+sub all_values {
   my $self = shift;
   
-  if (exists $self->{VALUES}) {
-    return @{$self->{VALUES}};
-  }
+  my $values;
   
-  my $size = $self->type->size * $self->count;
+  if (not exists $self->{VALUES}) {
+    my $size = $self->type->size * $self->count;
   
-  my $bytes;
+    my $bytes;
   
-  if ($size <= 4) {
-    $bytes = $self->{RAW};
+    if ($size <= 4) {
+      $bytes = $self->{RAW};
+    }
+    else {
+      $bytes = $self->{IO}->read($size, $self->offset);
+    }
+
+    my $unpacked = [ unpack($self->template, $bytes) ];
+    
+    $values = $self->type->post_process($unpacked);
+  
+    $self->{VALUES} = $values;
   }
   else {
-    $bytes = $self->{IO}->read($size, $self->offset);
+    $values = $self->{VALUES};
   }
-
-  my @values = $self->type->post_process(unpack($self->template, $bytes));
   
-  $self->{VALUES} = [ @values ];
-  
-  return @values;
+  return $values;
 }
 
 1;
