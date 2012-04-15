@@ -15,6 +15,7 @@ use constant {
   TAG_COMPRESSION       => 259,
   TAG_PHOTOMETRIC_INTERPRETATION => 262,
   TAG_SAMPLES_PER_PIXEL => 277,
+  TAG_ROWS_PER_STRIP    => 278,
   
   TAG_X_RESOLUTION     => 282,
   TAG_Y_RESOLUTION     => 283,
@@ -115,6 +116,16 @@ sub samples_per_pixel {
   my $field = $self->field(TAG_SAMPLES_PER_PIXEL);
   
   return 1 unless defined $field;
+  
+  return $field->value_at(0);
+}
+
+sub rows_per_strip {
+  my $self = shift;
+  
+  my $field = $self->field(TAG_ROWS_PER_STRIP);
+  
+  return undef unless defined $field;
   
   return $field->value_at(0);
 }

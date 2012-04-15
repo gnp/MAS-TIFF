@@ -75,6 +75,7 @@ sub dump {
     printf("    Samples per pixel: %d\n", $ifd->samples_per_pixel);
     printf("    Compression: '%s'\n", $ifd->compression);
     printf("    Photometric Interpretation: '%s'\n", $ifd->photometric_interpretation);
+    printf("    Rows per strip: %d\n", $ifd->rows_per_strip);
     printf("    Is Image: %d\n", $ifd->is_image);
     printf("    Is Reduced Image: %d\n", $ifd->is_reduced_image);
     printf("    Is Page: %d\n", $ifd->is_page);
