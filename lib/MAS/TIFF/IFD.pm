@@ -13,6 +13,7 @@ use constant {
   
   TAG_BITS_PER_SAMPLE   => 258,
   TAG_COMPRESSION       => 259,
+  TAG_PHOTOMETRIC_INTERPRETATION => 262,
   TAG_SAMPLES_PER_PIXEL => 277,
   
   TAG_X_RESOLUTION     => 282,
@@ -254,6 +255,38 @@ sub compression {
   my $value = $compression{$field->value_at(0)};
 
   die("Unrecognized compression '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %compression)) unless defined $value;
+
+  return $value;
+}
+
+# http://www.awaresystems.be/imaging/tiff/tifftags/photometricinterpretation.html
+my %photometric_interpretation = (
+      0 => 'MinIsWhite', # WhiteIsZero
+      1 => 'MinIsBlack', # BlackIsZero
+      2 => 'RGB',
+      3 => 'Palette', # RGB Palette
+      4 => 'Mask', # Transparency Mask
+      5 => 'Separated', # CMYK
+      6 => 'YCbCr',
+      8 => 'CIELab',
+      9 => 'ICCLab',
+     10 => 'ITULab',
+  32844 => 'LogL', # Pixar
+  32845 => 'LogLuv', # Pixar
+);
+
+sub photometric_interpretation {
+  my $self = shift;
+
+  my $field = $self->field(TAG_PHOTOMETRIC_INTERPRETATION);
+
+  unless (defined $field) {
+    return undef;
+  }
+
+  my $value = $photometric_interpretation{$field->value_at(0)};
+
+  die("Unrecognized photometric interpretation '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %photometric_interpretation)) unless defined $value;
 
   return $value;
 }
