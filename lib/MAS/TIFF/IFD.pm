@@ -14,8 +14,10 @@ use constant {
   TAG_BITS_PER_SAMPLE   => 258,
   TAG_COMPRESSION       => 259,
   TAG_PHOTOMETRIC_INTERPRETATION => 262,
+  TAG_STRIP_OFFSETS     => 273,
   TAG_SAMPLES_PER_PIXEL => 277,
   TAG_ROWS_PER_STRIP    => 278,
+  TAG_STRIP_BYTE_COUNTS => 279,
   
   TAG_X_RESOLUTION     => 282,
   TAG_Y_RESOLUTION     => 283,
@@ -128,6 +130,50 @@ sub rows_per_strip {
   return undef unless defined $field;
   
   return $field->value_at(0);
+}
+
+sub strip_offsets {
+  my $self = shift;
+  
+  my $field = $self->field(TAG_STRIP_OFFSETS);
+    
+  return ( ) unless defined $field;
+  
+  return @{$field->all_values};
+}
+
+sub strip_byte_counts {
+  my $self = shift;
+  
+  my $field = $self->field(TAG_STRIP_BYTE_COUNTS);
+    
+  return ( ) unless defined $field;
+  
+  return @{$field->all_values};
+}
+
+sub strip_count {
+  my $self = shift;
+  
+  my $field = $self->field(TAG_STRIP_OFFSETS);
+    
+  return undef unless defined $field;
+
+  return $field->count;
+}
+
+sub strip {
+  my $self = shift;
+  my $index = shift;
+  
+  die "Index must be defined" unless defined $index;
+  
+  my $size = ($self->strip_byte_counts)[$index];
+  my $offset = ($self->strip_offsets)[$index];
+  
+  my $bytes = $self->io->read($size, $offset);
+  
+  return $bytes;
 }
 
 sub is_image {

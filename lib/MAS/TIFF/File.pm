@@ -76,6 +76,9 @@ sub dump {
     printf("    Compression: '%s'\n", $ifd->compression);
     printf("    Photometric Interpretation: '%s'\n", $ifd->photometric_interpretation);
     printf("    Rows per strip: %d\n", $ifd->rows_per_strip);
+    printf("    Strip count: %d\n", $ifd->strip_count);
+    printf("    Strip offsets: (%s)\n", join(', ', $ifd->strip_offsets));
+    printf("    Strip byte counts: (%s)\n", join(', ', $ifd->strip_byte_counts));
     printf("    Is Image: %d\n", $ifd->is_image);
     printf("    Is Reduced Image: %d\n", $ifd->is_reduced_image);
     printf("    Is Page: %d\n", $ifd->is_page);
@@ -83,6 +86,15 @@ sub dump {
     printf("    Resolution: %s x %s PIXELS / %s\n", $ifd->x_resolution->to_string, $ifd->y_resolution->to_string, $ifd->resolution_unit);
     printf("    Software: '%s'\n", $ifd->software);
     printf("    Datetime: '%s'\n", $ifd->datetime);
+    
+    my $index = 0;
+    
+    my $bytes = $ifd->strip($index);
+    
+    my $dump = unpack('H*', $bytes);
+    
+    print "\nStrip 0:\n";
+    print $dump, "\n\n";
   }
 }
 
