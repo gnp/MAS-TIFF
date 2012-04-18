@@ -1,0 +1,7 @@
+=head1 CHANGES
+
+
+=head2 Version 0.1 [2012-04-17]
+
+Some basic metadata reading and reading pixels of bitonal LZW compressed strips
+is working, but the API isn't particularly well thought out yet.
