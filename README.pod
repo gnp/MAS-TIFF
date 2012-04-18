@@ -15,3 +15,6 @@ or were just about metadata. I needed a library that would allow me to read
 
 As of 2012-04-17, some basic metadata reading and reading pixels of bitonal LZW compressed
 strips is working, but the API isn't particularly well thought out yet.
+
+The code lives on GitHub: https://github.com/gnp/MAS-TIFF
+
