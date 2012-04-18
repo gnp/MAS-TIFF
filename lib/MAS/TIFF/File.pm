@@ -7,6 +7,8 @@ use warnings;
 
 package MAS::TIFF::File;
 
+our $VERSION = '0.1';
+
 sub new {
   my $class = shift;
   my $path = shift;
