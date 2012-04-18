@@ -334,10 +334,15 @@ my %photometric_interpretation = (
 
 sub photometric_interpretation {
   my $self = shift;
+  
+  if (exists $self->{PHOTOMETRIC_INTERPRETATION}) {
+    return $self->{PHOTOMETRIC_INTERPRETATION};
+  }
 
   my $field = $self->field(TAG_PHOTOMETRIC_INTERPRETATION);
 
   unless (defined $field) {
+    $self->{PHOTOMETRIC_INTERPRETATION} = undef;
     return undef;
   }
 
@@ -345,6 +350,8 @@ sub photometric_interpretation {
 
   die("Unrecognized photometric interpretation '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %photometric_interpretation)) unless defined $value;
 
+  $self->{PHOTOMETRIC_INTERPRETATION} = $value;
+  
   return $value;
 }
 
