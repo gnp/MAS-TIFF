@@ -19,3 +19,5 @@ strips is working, but the API isn't particularly well thought out yet.
 
 The code lives on GitHub: https://github.com/gnp/MAS-TIFF
 
+Releases are submitted to CPAN: http://search.cpan.org/~gregor
+
