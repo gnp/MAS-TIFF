@@ -10,6 +10,7 @@ MAS::TIFF is a pure Perl package for reading TIFF image metadata and samples.
 
 The other TIFF reading libraries I could find on CPAN either used C<libtiff>
 or were just about metadata. I needed a library that would allow me to read
+pixel (sample) data, without needing libtiff.
 
 =head1 STATUS
 
