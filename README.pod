@@ -21,3 +21,5 @@ The code lives on GitHub: https://github.com/gnp/MAS-TIFF
 
 Releases are uploaded to CPAN: http://search.cpan.org/~gregor
 
+Announcements are made on Freecode: http://freecode.com/users/gregor
+
