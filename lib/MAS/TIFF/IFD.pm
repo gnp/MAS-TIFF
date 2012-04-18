@@ -4,6 +4,7 @@ use warnings;
 package MAS::TIFF::IFD;
 
 use MAS::TIFF::Field;
+use MAS::TIFF::Compression::LZW;
 
 use constant {
   TAG_NEW_SUBFILE_TYPE => 254,
@@ -168,10 +169,20 @@ sub strip {
   
   die "Index must be defined" unless defined $index;
   
+  if (exists $self->{STRIPS}[$index]) {
+    return $self->{STRIPS}[$index];
+  }
+  
   my $size = ($self->strip_byte_counts)[$index];
   my $offset = ($self->strip_offsets)[$index];
   
   my $bytes = $self->io->read($size, $offset);
+  
+  if ($self->compression eq 'LZW') {
+    $bytes = MAS::TIFF::Compression::LZW::decode($bytes);
+  }
+  
+  $self->{STRIPS}[$index] = $bytes;
   
   return $bytes;
 }
