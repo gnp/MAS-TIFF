@@ -187,6 +187,60 @@ sub strip {
   return $bytes;
 }
 
+#
+# With the strip, each row is stored in a contiguous byte sequence, with possibly some
+# unused bits at the end.
+#
+# Returns zero for black, one for white.
+#
+
+sub pixel_at {
+  use integer;
+  
+  my $self = shift;
+  my ($x, $y) = @_;
+  
+  if ($self->samples_per_pixel != 1) {
+    die "Sorry, only images with one sample per pixel are supported!";
+  }
+  
+  if ($self->bits_per_sample != 1) {
+    die "Sorry, only images with one bit per sample are supported!";
+  }
+  
+  if (($x < 0) || ($x >= $self->image_width)) {
+    die "x must be in range 0.." . ($self->image_width - 1) . "!";
+  }
+  
+  if (($y < 0) || ($y >= $self->image_length)) {
+    die "y must be in range 0.." . ($self->image_width - 1) . "!";
+  }
+  
+  my $index = $y / $self->rows_per_strip;
+  my $strip = $self->strip($index);
+
+  my $row = $y % $self->rows_per_strip;
+  
+  my $bytes_per_row = $self->image_width / 8 + (($self->image_width % 8) != 0 ? 1 : 0);
+  my $byte_index = ($row * $bytes_per_row) + ($x / 8);
+  my $byte = ord substr($strip, $byte_index, 1);
+  my $bit_index = 7 - ($x % 8);
+  my $bit = ($byte >> $bit_index) & 0x01;
+  my $row_offset =
+  
+  my $pi = $self->photometric_interpretation;
+  
+  if ($pi eq 'MinIsWhite') {
+    return !$bit;
+  }
+  elsif ($pi eq 'MinIsBlack') {
+    return $bit;
+  }
+  else {
+    die "Sorry, only MinIsWhite and MinIsBlack are supported photometric interpretations!";
+  }
+}
+
 sub is_image {
   my $self = shift;
 

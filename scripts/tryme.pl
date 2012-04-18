@@ -15,21 +15,23 @@ use MAS::TIFF::Field;
 use MAS::TIFF::IFD;
 use MAS::TIFF::File;
 
-sub read_tif {
-  my $path = shift;
-  
-  my $tif = MAS::TIFF::File->new($path);
-  $tif->dump;
-  
-  $tif->close;
-}
-
-
 my $path = 't/original.tif';
 #my $path = 't/noisy.tif';
 #my $path = 't/diffuse.tif';
 #my $path = 't/multi.tif';
-read_tif($path);
 
+my $tif = MAS::TIFF::File->new($path);
+$tif->dump;
+
+for my $ifd ($tif->ifds) {
+  for my $y (0..70) {
+    for my $x (0..70) {
+      print $ifd->pixel_at($x, $y) ? '.' : '*';
+    }
+    print "\n";
+  }
+}
+
+$tif->close;
 
 exit 0;
