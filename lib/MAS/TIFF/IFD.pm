@@ -209,11 +209,11 @@ sub pixel_at {
   }
   
   if (($x < 0) || ($x >= $self->image_width)) {
-    die "x must be in range 0.." . ($self->image_width - 1) . "!";
+    die "x must be in range 0.." . ($self->image_width - 1) . ", but was $x.!";
   }
   
   if (($y < 0) || ($y >= $self->image_length)) {
-    die "y must be in range 0.." . ($self->image_width - 1) . "!";
+    die "y must be in range 0.." . ($self->image_length - 1) . ", but was $y!";
   }
   
   my $index = $y / $self->rows_per_strip;
