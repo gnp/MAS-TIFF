@@ -7,7 +7,12 @@ use warnings;
 
 package MAS::TIFF::File;
 
-our $VERSION = '0.1';
+use Filehandle;
+use MAS::TIFF::IO;
+use MAS::TIFF::IFD;
+use MAS::TIFF::DataType;
+
+our $VERSION = '0.2';
 
 sub new {
   my $class = shift;

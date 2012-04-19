@@ -6,13 +6,6 @@
 use strict;
 use warnings;
 
-use FileHandle;
-
-use MAS::TIFF::IO;
-use MAS::TIFF::Rational;
-use MAS::TIFF::DataType;
-use MAS::TIFF::Field;
-use MAS::TIFF::IFD;
 use MAS::TIFF::File;
 
 my $path = 't/original.tif';
