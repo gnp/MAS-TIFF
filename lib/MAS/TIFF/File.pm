@@ -12,7 +12,7 @@ use MAS::TIFF::IO;
 use MAS::TIFF::IFD;
 use MAS::TIFF::DataType;
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 sub new {
   my $class = shift;
@@ -94,14 +94,11 @@ sub dump {
     printf("    Software: '%s'\n", $ifd->software);
     printf("    Datetime: '%s'\n", $ifd->datetime);
     
-    my $index = 0;
-    
-    my $bytes = $ifd->strip($index);
-    
-    my $dump = unpack('H*', $bytes);
-    
-    print "\nStrip 0:\n";
-    print $dump, "\n\n";
+#    my $index = 0;
+#    my $bytes = $ifd->strip($index);   
+#    my $dump = unpack('H*', $bytes);
+#   print "\nStrip 0:\n";
+#   print $dump, "\n\n";
   }
 }
 

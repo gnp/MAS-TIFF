@@ -86,119 +86,228 @@ sub field {
   return $self->{FIELDS}{$tag_id};
 }
 
-sub image_width { return shift->field(TAG_IMAGE_WIDTH)->value_at(0) }
-sub image_length { return shift->field(TAG_IMAGE_LENGTH)->value_at(0) }
+sub image_width {
+  my $self = shift;
+  
+  if (exists $self->{IMAGE_WIDTH}) {
+    return $self->{IMAGE_WIDTH};
+  }
+  
+  my $value = $self->field(TAG_IMAGE_WIDTH)->value_at(0);
+  
+  $self->{IMAGE_WIDTH} = $value;
+  
+  return $value;
+}
+
+sub image_length {
+  my $self = shift;
+  
+  if (exists $self->{IMAGE_LENGTH}) {
+    return $self->{IMAGE_LENGTH};
+  }
+  
+  my $value = $self->field(TAG_IMAGE_LENGTH)->value_at(0);
+  
+  $self->{IMAGE_LENGTH} = $value;
+  
+  return $value;
+}
 
 sub bits_per_sample {
   my $self = shift;
-  
+    
+  if (exists $self->{BITS_PER_SAMPLE}) {
+    return $self->{BITS_PER_SAMPLE};
+  }
+
   my $spp = $self->samples_per_pixel;
   
   my $field = $self->field(TAG_BITS_PER_SAMPLE);
   
+  my $value;
+  
   if (not defined $field) {
     if ($spp == 1) {
-      return 1; # OK to default to 1 if only expecting a single value
+      $value = 1; # OK to default to 1 if only expecting a single value
     }
     else {
       die "Cannot omit bits_per_sample tag when samples_per_pixel > 1!";
     }
   }
-  
-  if ($spp == 1) {
-    return $field->value_at(0);
-  }
   else {
-    die "Not supported yet -- Need better tag reading code";
+    if ($spp == 1) {
+      $value = $field->value_at(0);
+    }
+    else {
+      die "Not supported yet -- Need better tag reading code";
+    }
   }
+  
+  $self->{BITS_PER_SAMPLE} = $value;
+
+  return $value;
 }
 
 sub samples_per_pixel {
   my $self = shift;
   
+  if (exists $self->{SAMPLES_PER_PIXEL}) {
+    return $self->{SAMPLES_PER_PIXEL};
+  }
+  
   my $field = $self->field(TAG_SAMPLES_PER_PIXEL);
   
-  return 1 unless defined $field;
+  my $value;
   
-  return $field->value_at(0);
+  if (defined $field) {
+    $value = $field->value_at(0);
+  }
+  else {
+    $value = 1;
+  }
+  
+  $self->{SAMPLES_PER_PIXEL} = $value;
+
+  return $value;
 }
 
 sub rows_per_strip {
   my $self = shift;
   
+  if (exists $self->{ROWS_PER_STRIP}) {
+    return $self->{ROWS_PER_STRIP};
+  }
+  
   my $field = $self->field(TAG_ROWS_PER_STRIP);
   
-  return undef unless defined $field;
+  my $value;
   
-  return $field->value_at(0);
+  if (defined $field) {
+    $value = $field->value_at(0);
+  }
+  else {
+    $value = 1;
+  }
+  
+  $self->{ROWS_PER_STRIP} = $value;
+
+  return $value;
 }
 
 sub strip_offsets {
   my $self = shift;
-  
-  my $field = $self->field(TAG_STRIP_OFFSETS);
     
-  return ( ) unless defined $field;
+  if (exists $self->{STRIP_OFFSETS}) {
+    return @{$self->{STRIP_OFFSETS}};
+  }
+
+  my $field = $self->field(TAG_STRIP_OFFSETS);
   
-  return @{$field->all_values};
+  my $values;
+  
+  if (defined $field) {
+    $values = $field->all_values
+  }
+  else {
+    $values = [ ];
+  }
+
+  $self->{STRIP_OFFSETS} = $values; 
+  
+  return @{$values};
 }
 
 sub strip_byte_counts {
   my $self = shift;
   
+  if (exists $self->{STRIP_BYTE_COUNTS}) {
+    return @{$self->{STRIP_BYTE_COUNTS}};
+  }
+   
   my $field = $self->field(TAG_STRIP_BYTE_COUNTS);
-    
-  return ( ) unless defined $field;
   
-  return @{$field->all_values};
+  my $values;
+  
+  if (defined $field) {
+    $values = $field->all_values
+  }
+  else {
+    $values = [ ];
+  }
+
+  $self->{STRIP_BYTE_COUNTS} = $values; 
+  
+  return @{$values};
 }
 
 sub strip_count {
   my $self = shift;
   
+  if (exists $self->{STRIP_COUNT}) {
+    return $self->{STRIP_COUNT};
+  }
+  
   my $field = $self->field(TAG_STRIP_OFFSETS);
+
+  
+  my $value;
+  
+  if (defined $field) {
+    $value = $field->count;
+  }
+  else {
+    $value = 1;
+  }
+  
+  $self->{STRIP_COUNT} = $value;
+
+  return $value;
+}
+
+sub strip_reader {
+  my $self = shift;
+  
+  if (exists $self->{STRIP_READER}) {
+    return $self->{STRIP_READER};
+  }
+  
+  if ($self->compression ne 'LZW') {
+    die "Only LZW compression is supported";
+  }
+  
+  my @sizes = $self->strip_byte_counts;
+  my @offsets = $self->strip_offsets;
+  
+  my @cache = ( );
+  
+  my $reader = sub {
+    my $index = shift;
     
-  return undef unless defined $field;
-
-  return $field->count;
-}
-
-sub strip {
-  my $self = shift;
-  my $index = shift;
-  
-  die "Index must be defined" unless defined $index;
-  
-  if (exists $self->{STRIPS}[$index]) {
-    return $self->{STRIPS}[$index];
-  }
-  
-  my $size = ($self->strip_byte_counts)[$index];
-  my $offset = ($self->strip_offsets)[$index];
-  
-  my $bytes = $self->io->read($size, $offset);
-  
-  if ($self->compression eq 'LZW') {
+    return $cache[$index] if exists $cache[$index];
+    
+    my $size = $sizes[$index];
+    my $offset = $offsets[$index];
+    
+    my $bytes = $self->io->read($size, $offset);
     $bytes = MAS::TIFF::Compression::LZW::decode($bytes);
-  }
+    
+    $cache[$index] = $bytes;
+    
+    return $bytes;
+  };
   
-  $self->{STRIPS}[$index] = $bytes;
+  $self->{STRIP_READER} = $reader;
   
-  return $bytes;
+  return $reader;
 }
 
-#
-# With the strip, each row is stored in a contiguous byte sequence, with possibly some
-# unused bits at the end.
-#
-# Returns zero for black, one for white.
-#
-
-sub pixel_at {
-  use integer;
-  
+sub scan_line_reader {
   my $self = shift;
-  my ($x, $y) = @_;
+  
+  if (exists $self->{SCAN_LINE_READER}) {
+    return $self->{SCAN_LINE_READER};
+  }
   
   if ($self->samples_per_pixel != 1) {
     die "Sorry, only images with one sample per pixel are supported!";
@@ -208,37 +317,141 @@ sub pixel_at {
     die "Sorry, only images with one bit per sample are supported!";
   }
   
-  if (($x < 0) || ($x >= $self->image_width)) {
-    die "x must be in range 0.." . ($self->image_width - 1) . ", but was $x.!";
-  }
+  my $image_width = $self->image_width;
+  my $image_length = $self->image_length;
   
-  if (($y < 0) || ($y >= $self->image_length)) {
-    die "y must be in range 0.." . ($self->image_length - 1) . ", but was $y!";
-  }
-  
-  my $index = $y / $self->rows_per_strip;
-  my $strip = $self->strip($index);
-
-  my $row = $y % $self->rows_per_strip;
-  
-  my $bytes_per_row = $self->image_width / 8 + (($self->image_width % 8) != 0 ? 1 : 0);
-  my $byte_index = ($row * $bytes_per_row) + ($x / 8);
-  my $byte = ord substr($strip, $byte_index, 1);
-  my $bit_index = 7 - ($x % 8);
-  my $bit = ($byte >> $bit_index) & 0x01;
-  my $row_offset =
-  
+  my $bytes_per_row = $image_width / 8 + (($image_width % 8) != 0 ? 1 : 0);
+    
+  my $rows_per_strip = $self->rows_per_strip;
   my $pi = $self->photometric_interpretation;
+
+  my $invert;
   
   if ($pi eq 'MinIsWhite') {
-    return !$bit;
+    $invert = 1;
   }
   elsif ($pi eq 'MinIsBlack') {
-    return $bit;
+    $invert = 0;
   }
   else {
     die "Sorry, only MinIsWhite and MinIsBlack are supported photometric interpretations!";
   }
+  
+  my $strip_reader = $self->strip_reader;
+  
+  my $last_strip_index = undef;
+  my $last_strip = undef;
+
+  my $reader = sub {
+    use integer;
+    
+    my $y = shift;
+  
+    if (($y < 0) || ($y >= $image_length)) {
+      die "y must be in range 0.." . ($image_length - 1) . ", but was $y!";
+    }
+    
+    my $index = $y / $rows_per_strip;
+    my $strip;
+    
+    if (defined($last_strip_index) && ($last_strip_index == $index)) {
+      $strip = $last_strip;
+    }
+    else {
+      $strip = &$strip_reader($index);
+      
+      $last_strip_index = $index;
+      $last_strip = $strip;
+    }
+
+    my $row_index = $y % $rows_per_strip;
+
+    my $row = substr($strip, $row_index * $bytes_per_row, $bytes_per_row);
+
+    if ($invert) {
+      $row = ~$row;
+    }
+
+    return $row;
+  };
+  
+  $self->{SCAN_LINE_READER} = $reader;
+  
+  return $reader;  
+  
+  
+}
+
+#
+# With the strip, each row is stored in a contiguous byte sequence, with possibly some
+# unused bits at the end.
+#
+# Returns zero for black, one for white.
+#
+
+sub pixel_reader {
+  my $self = shift;
+  
+  if (exists $self->{PIXEL_READER}) {
+    return $self->{PIXEL_READER};
+  }
+  
+  if ($self->samples_per_pixel != 1) {
+    die "Sorry, only images with one sample per pixel are supported!";
+  }
+  
+  if ($self->bits_per_sample != 1) {
+    die "Sorry, only images with one bit per sample are supported!";
+  }
+  
+  my $image_width = $self->image_width;
+  my $image_length = $self->image_length;
+  my $rows_per_strip = $self->rows_per_strip;
+  my $pi = $self->photometric_interpretation;
+  
+  my $scan_line_reader = $self->scan_line_reader;
+  
+  my $last_y = undef;
+  my $last_scan_line = undef;
+
+  my $reader = sub {
+    use integer;
+    
+    my $x = shift;
+    my $y = shift;
+
+    if (($x < 0) || ($x >= $image_width)) {
+      die "x must be in range 0.." . ($image_width - 1) . ", but was $x.!";
+    }
+  
+    if (($y < 0) || ($y >= $image_length)) {
+      die "y must be in range 0.." . ($image_length - 1) . ", but was $y!";
+    }
+    
+    my $scan_line;
+    
+    if (defined($last_y) && ($last_y == $y)) {
+      $scan_line = $last_scan_line;
+    }
+    else {
+      $scan_line = &$scan_line_reader($y);
+      
+      $last_y = $y;
+      $last_scan_line = $scan_line;
+    }
+
+    my $byte_index = $x / 8;
+    
+    my $byte = vec($scan_line, $byte_index, 8);
+    my $bit_index = 7 - ($x % 8);
+    my $bit = ($byte >> $bit_index) & 0x01;
+
+    return $bit;
+  };
+  
+  $self->{PIXEL_READER} = $reader;
+  
+  return $reader;
 }
 
 sub is_image {
@@ -366,17 +579,24 @@ my $default_compression = 1;
 sub compression {
   my $self = shift;
 
+  if (exists $self->{COMPRESSION}) {
+    return $self->{COMPRESSION};
+  }
+  
   my $field = $self->field(TAG_COMPRESSION);
 
-  unless (defined $field) {
-    my $temp = $compression{$default_compression};
-    
-    return $temp;
+  my $value;
+  
+  if (defined $field) {
+    $value = $compression{$field->value_at(0)};
+
+    die("Unrecognized compression '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %compression)) unless defined $value;
+  }
+  else {
+    $value = $compression{$default_compression};
   }
 
-  my $value = $compression{$field->value_at(0)};
-
-  die("Unrecognized compression '" . $field->value_at(0) . "'. Expected one of: " . join(', ', map { $_ = "'$_'" } sort keys %compression)) unless defined $value;
+  $self->{COMPRESSION} = $value;
 
   return $value;
 }

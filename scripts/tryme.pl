@@ -17,9 +17,11 @@ my $tif = MAS::TIFF::File->new($path);
 $tif->dump;
 
 for my $ifd ($tif->ifds) {
+  my $pixel_reader = $ifd->pixel_reader;
+  
   for my $y (0..70) {
     for my $x (0..70) {
-      print $ifd->pixel_at($x, $y) ? '.' : '*';
+      print &$pixel_reader($x, $y) ? '.' : '*';
     }
     print "\n";
   }
