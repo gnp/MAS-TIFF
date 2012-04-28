@@ -91,8 +91,8 @@ sub dump {
     printf("    Is Page: %d\n", $ifd->is_page);
     printf("    Is Mask: %d\n", $ifd->is_mask);
     printf("    Resolution: %s x %s PIXELS / %s\n", $ifd->x_resolution->to_string, $ifd->y_resolution->to_string, $ifd->resolution_unit);
-    printf("    Software: '%s'\n", $ifd->software);
-    printf("    Datetime: '%s'\n", $ifd->datetime);
+    printf("    Software: '%s'\n", $ifd->software) if defined $ifd->software;
+    printf("    Datetime: '%s'\n", $ifd->datetime) if defined $ifd->datetime;
     
 #    my $index = 0;
 #    my $bytes = $ifd->strip($index);   
