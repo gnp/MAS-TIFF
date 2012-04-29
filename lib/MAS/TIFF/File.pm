@@ -68,8 +68,8 @@ sub dump {
     
     foreach my $field ($ifd->fields) {
       if ($field->size > 4) {
-        printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, OFFSET %d\n", $field->id, $field->name,
-          $field->type->name, $field->count, $field->size, $field->template, $field->offset);
+        printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, RAW 0x%s, OFFSET %d\n", $field->id, $field->name,
+          $field->type->name, $field->count, $field->size, $field->template,  unpack('H*', $field->raw), $field->offset);
       }
       else {
         printf("    FIELD: TAG %d (%s), TYPE %s, COUNT %d, SIZE %d, TEMPLATE %s, RAW 0x%s, VALUES (%s)\n", $field->id, $field->name,
