@@ -148,10 +148,10 @@ sub offset {
   }
   else {
     if ($self->{IO}->byte_order eq 'I') {
-      $offset = unpack('S<', $self->raw);
+      $offset = unpack('L<', $self->raw);
     }
     else {
-      $offset = unpack('S>', $self->raw);
+      $offset = unpack('L>', $self->raw);
     }
   }
   
