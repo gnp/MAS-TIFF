@@ -12,7 +12,7 @@ use MAS::TIFF::IO;
 use MAS::TIFF::IFD;
 use MAS::TIFF::DataType;
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 sub new {
   my $class = shift;
