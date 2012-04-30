@@ -1,6 +1,24 @@
 =head1 CHANGES
 
 
+=head2 Version 0.4 [2012-04-30]
+
+Disable upper-left region pixel dumping when dumping IFDs.
+
+When dumping, show the raw bytes for the offset, too.
+
+BUG FIX: Offets are four bytes long, not two.
+
+Only attempt to print software and datetime if they are defined
+
+
+=head2 Version 0.3 [2012-04-29]
+
+Modify API to provide ways of getting "reader" subs that do work and cache intermediate results to improve performance in clients that read a lot
+
+Show the illegal value when x or y out of range on pixel_at()
+
+
 =head2 Version 0.2 [2012-04-18]
 
 Fixed missing 'use' declarations in MAS::TIFF::File.
