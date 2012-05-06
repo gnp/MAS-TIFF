@@ -7,6 +7,9 @@ my $builder = Module::Build->new(
     license             => 'perl',
     dist_author         => 'Gregor N. Purdy, Sr. <gnp@acm.org>',
     dist_version_from   => 'lib/MAS/TIFF/File.pm',
+    requires => {
+      'perl' => '5.008000',
+    },
 );
 
 $builder->create_build_script();
