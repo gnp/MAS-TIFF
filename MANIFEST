@@ -17,3 +17,5 @@ t/lzw.t
 t/multi.tif
 t/noisy.tif
 t/original.tif
+META.yml
+META.json

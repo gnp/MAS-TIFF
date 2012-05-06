@@ -1,0 +1,69 @@
+{
+   "abstract" : "Pure Perl TIFF image metadata and samples reading",
+   "author" : [
+      "Gregor N. Purdy, Sr. <gnp@acm.org>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.110440",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "MAS-TIFF",
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.38"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "perl" : "5.008000"
+         }
+      }
+   },
+   "provides" : {
+      "MAS::TIFF::Compression::LZW" : {
+         "file" : "lib/MAS/TIFF/Compression/LZW.pm",
+         "version" : 0
+      },
+      "MAS::TIFF::Compression::LZW::State" : {
+         "file" : "lib/MAS/TIFF/Compression/LZW.pm",
+         "version" : 0
+      },
+      "MAS::TIFF::DataType" : {
+         "file" : "lib/MAS/TIFF/DataType.pm",
+         "version" : 0
+      },
+      "MAS::TIFF::Field" : {
+         "file" : "lib/MAS/TIFF/Field.pm",
+         "version" : 0
+      },
+      "MAS::TIFF::File" : {
+         "file" : "lib/MAS/TIFF/File.pm",
+         "version" : "0.4"
+      },
+      "MAS::TIFF::IFD" : {
+         "file" : "lib/MAS/TIFF/IFD.pm",
+         "version" : 0
+      },
+      "MAS::TIFF::IO" : {
+         "file" : "lib/MAS/TIFF/IO.pm",
+         "version" : 0
+      },
+      "MAS::TIFF::Rational" : {
+         "file" : "lib/MAS/TIFF/Rational.pm",
+         "version" : 0
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "0.4"
+}
