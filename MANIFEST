@@ -1,4 +1,5 @@
 Build.PL
+CHANGES.pod
 COPYRIGHT
 lib/MAS/TIFF/Compression/LZW.pm
 lib/MAS/TIFF/DataType.pm
