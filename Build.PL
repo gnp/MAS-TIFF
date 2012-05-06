@@ -7,6 +7,7 @@ my $builder = Module::Build->new(
     license             => 'perl',
     dist_author         => 'Gregor N. Purdy, Sr. <gnp@acm.org>',
     dist_version_from   => 'lib/MAS/TIFF/File.pm',
+    dist_abstract => 'Pure Perl TIFF image metadata and samples reading',
     requires => {
       'perl' => '5.008000',
     },
