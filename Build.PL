@@ -11,6 +11,7 @@ my $builder = Module::Build->new(
     requires => {
       'perl' => '5.008000',
     },
+    add_to_cleanup => ['MAS-TIFF-*.tar.gz'],
 );
 
 $builder->create_build_script();
