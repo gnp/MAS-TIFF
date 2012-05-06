@@ -13,7 +13,7 @@ sub new {
   my $bytes = shift;
   
   return bless {
-    BYTES => $bytes // '',
+    BYTES => defined($bytes) ? $bytes : '',
     BYTE_INDEX => 0,
     BIT_INDEX => 0,
     BYTE => undef,
@@ -128,7 +128,7 @@ sub write_code {
   
 #  printf "Writing %d bit code %s\n", $size, $code;
 
-  my $byte = $self->{BYTE} // 0;
+  my $byte = defined($self->{BYTE}) ? $self->{BYTE} : 0;
   my $bit_index = $self->{BIT_INDEX};
 
   my $remaining = $size;
