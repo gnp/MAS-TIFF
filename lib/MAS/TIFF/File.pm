@@ -4,6 +4,7 @@
 
 use strict;
 use warnings;
+use 5.8.0;
 
 package MAS::TIFF::File;
 
