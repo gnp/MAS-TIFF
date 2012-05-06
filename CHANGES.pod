@@ -1,5 +1,9 @@
 =head1 CHANGES
 
+=head2 UPCOMING
+
+Fix Issue #1: [rt.cpan.org #77023] MAS-TIFF: Fails on 5.8.x
+
 
 =head2 Version 0.4 [2012-04-30]
 
